@@ -2,52 +2,209 @@
 <style xmlns="http://purl.org/net/xbiblio/csl" version="1.0" class="in-text" default-locale="cs-CZ">
   <info>
     <title>ISO-690 (numeric, Czech, square brackets)</title>
-    <id>http://www.zotero.org/styles/iso690-numeric-cs-brackets</id>
-    <link href="http://www.zotero.org/styles/iso690-numeric-cs" rel="self"/>
+    <id>https://raw.githubusercontent.com/martingaliaprivate-beep/iso690-numeric-brackets.csl/refs/heads/main/iso690-numeric-brackets.csl</id>
+    <link href="https://raw.githubusercontent.com/martingaliaprivate-beep/iso690-numeric-brackets.csl/refs/heads/main/iso690-numeric-brackets.csl" rel="self"/>
     <link href="http://www.zotero.org/styles/iso690-numeric-cs" rel="template"/>
     <author>
-      <name>Custom ISO 690 CZ</name>
+      <name>Martin Galia</name>
     </author>
     <category citation-format="numeric"/>
     <category field="generic-base"/>
-    <updated>2026-11-07T00:00:00+00:00</updated>
+    <updated>2026-11-20T22:17:00+01:00</updated>
     <rights license="http://creativecommons.org/licenses/by-sa/3.0/">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights>
   </info>
+
   <locale xml:lang="cs">
     <terms>
       <term name="anonymous">Anonym</term>
       <term name="accessed">cit.</term>
       <term name="available at">Dostupné z</term>
+      <term name="online">online</term>
+      <term name="et-al">et al.</term>
+      <term name="editor" form="short">ed.</term>
+      <term name="edition" form="short">vyd.</term>
     </terms>
   </locale>
+
+  <!-- Makro pro autory (PŘÍJMENÍ, Jméno; více než 3 autoři zkráceni na et al.) -->
   <macro name="author">
     <names variable="author">
-      <name name-as-sort-order="all" sort-separator=", " initialize-with="." delimiter=" – " delimiter-precedes-last="always">
+      <name name-as-sort-order="all" sort-separator=", " initialize-with=". " delimiter=" – " delimiter-precedes-last="always" et-al-min="4" et-al-use-first="1">
         <name-part name="family" text-case="uppercase"/>
       </name>
+      <et-al font-style="italic"/>
+      <substitute>
+        <names variable="editor"/>
+        <text variable="title"/>
+      </substitute>
     </names>
   </macro>
-  <macro name="title">
-    <text variable="title" font-style="italic"/>
+
+  <!-- Makro pro editory sborníků/knih -->
+  <macro name="editor">
+    <names variable="editor">
+      <name name-as-sort-order="all" sort-separator=", " initialize-with=". " delimiter=" – " delimiter-precedes-last="always">
+        <name-part name="family" text-case="uppercase"/>
+      </name>
+      <label form="short" prefix=" (" suffix=")"/>
+    </names>
   </macro>
+
+  <!-- Makro pro název dokumentu -->
+  <macro name="title">
+    <choose>
+      <if type="article-journal article-magazine article-newspaper chapter paper-conference webpage post-weblog" match="any">
+        <text variable="title"/>
+      </if>
+      <else>
+        <text variable="title" font-style="italic"/>
+      </else>
+    </choose>
+  </macro>
+
+  <!-- Makro pro vydání (např. 2. vyd.) -->
+  <macro name="edition">
+    <choose>
+      <if is-numeric="edition">
+        <group delimiter=" ">
+          <number variable="edition" form="ordinal"/>
+          <text term="edition" form="short"/>
+        </group>
+      </if>
+      <else>
+        <text variable="edition"/>
+      </else>
+    </choose>
+  </macro>
+
+  <!-- Makro pro nakladatelské údaje (Místo: Vydavatel, Rok) -->
+  <macro name="publisher">
+    <group delimiter=", ">
+      <group delimiter=": ">
+        <text variable="publisher-place"/>
+        <text variable="publisher"/>
+      </group>
+      <date variable="issued">
+        <date-part name="year"/>
+      </date>
+    </group>
+  </macro>
+
+  <!-- Makro pro datum citování [cit. RRRR-MM-DD] -->
+  <macro name="accessed">
+    <choose>
+      <if variable="URL DOI" match="any">
+        <group prefix=" [" suffix="]" delimiter=" ">
+          <text term="accessed"/>
+          <date variable="accessed" form="numeric" date-parts="year-month-day"/>
+        </group>
+      </if>
+    </choose>
+  </macro>
+
+  <!-- Makro pro identifikátory (ISBN, ISSN, DOI, URL) -->
+  <macro name="identifier">
+    <group delimiter=". ">
+      <text variable="ISBN" prefix="ISBN "/>
+      <text variable="ISSN" prefix="ISSN "/>
+      <text variable="DOI" prefix="DOI: https://doi.org/"/>
+      <choose>
+        <if variable="DOI" match="none">
+          <group delimiter=": ">
+            <text term="available at"/>
+            <text variable="URL"/>
+          </group>
+        </if>
+      </choose>
+    </group>
+  </macro>
+
+  <!-- Formátování odkazu přímo v textu -->
   <citation collapse="citation-number">
     <sort>
       <key variable="citation-number"/>
     </sort>
     <layout prefix="[" suffix="]" delimiter=", ">
       <text variable="citation-number"/>
+      <group prefix=", s. ">
+        <text variable="locator"/>
+      </group>
     </layout>
   </citation>
-  <bibliography second-field-align="flush">
-    <layout>
+
+  <!-- Formátování seznamu použité literatury -->
+  <bibliography second-field-align="flush" entry-spacing="0">
+    <layout suffix=".">
       <text variable="citation-number" prefix="[" suffix="] "/>
       <text macro="author" suffix=". "/>
-      <text macro="title" suffix=". "/>
-      <text variable="publisher" suffix=", "/>
-      <date variable="issued">
-        <date-part name="year"/>
-      </date>
-      <text variable="URL" prefix=". Dostupné z: "/>
+      <text macro="title"/>
+
+      <!-- Označení [online] pro elektronické zdroje -->
+      <choose>
+        <if variable="URL DOI" match="any">
+          <text term="online" prefix=" [" suffix="]"/>
+        </if>
+      </choose>
+
+      <choose>
+        <!-- 1. Články v časopisech (nejčastější z PDF) -->
+        <if type="article-journal article-magazine article-newspaper" match="any">
+          <text variable="container-title" font-style="italic" prefix=". "/>
+          <group prefix=", " delimiter=", ">
+            <date variable="issued">
+              <date-part name="year"/>
+            </date>
+            <group>
+              <text variable="volume"/>
+              <text variable="issue" prefix="(" suffix=")"/>
+            </group>
+            <text variable="page"/>
+          </group>
+        </if>
+
+        <!-- 2. Kapitoly v knihách a příspěvky ve sbornících -->
+        <else-if type="chapter paper-conference" match="any">
+          <group prefix=". In: " delimiter=". ">
+            <text macro="editor"/>
+            <text variable="container-title" font-style="italic"/>
+            <text macro="edition"/>
+            <text macro="publisher"/>
+            <text variable="page" prefix="s. "/>
+          </group>
+        </else-if>
+
+        <!-- 3. Webové stránky a blogy -->
+        <else-if type="webpage post-weblog" match="any">
+          <text variable="container-title" font-style="italic" prefix=". "/>
+          <date variable="issued" prefix=", ">
+            <date-part name="year"/>
+          </date>
+        </else-if>
+
+        <!-- 4. Vysokoškolské kvalifikační práce -->
+        <else-if type="thesis">
+          <group prefix=". " delimiter=", ">
+            <text variable="genre"/>
+            <text variable="publisher-place"/>
+            <text variable="publisher"/>
+            <date variable="issued">
+              <date-part name="year"/>
+            </date>
+          </group>
+        </else-if>
+
+        <!-- 5. Knihy, normy, zprávy a ostatní dokumenty -->
+        <else>
+          <group prefix=". " delimiter=". ">
+            <text macro="edition"/>
+            <text macro="publisher"/>
+          </group>
+        </else>
+      </choose>
+
+      <!-- Datum citování a identifikátory na konci záznamu -->
+      <text macro="accessed"/>
+      <text macro="identifier" prefix=". "/>
     </layout>
   </bibliography>
 </style>
